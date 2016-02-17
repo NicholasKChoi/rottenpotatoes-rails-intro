@@ -9,18 +9,29 @@ class MoviesController < ApplicationController
     @movie = Movie.find(id) # look up movie by unique ID
     # will render app/views/movies/show.<extension> by default
   end
+  
+  def clear
+    session.clear
+    redirect_to movies_path()
+  end
 
   def index
+    print "params are #{params} \n"
     @all_ratings = Movie.all_ratings
-    if not params[:ratings]
-      if not session[:ratings]
+    if not params[:ratings] or (not params[:order] and session[:order])
+      flash.keep
+      if not session[:ratings] and not params[:ratings]
         params[:ratings] = {"G"=>"1", "PG" => 1, "PG-13" => 1, "R"=> 1}
-      else
+      elsif not params[:ratings]
         params[:ratings] = session[:ratings]
       end
+      if session[:order]
+        params[:order] = session[:order]
+      end
+      redirect_to movies_path(params)
     end
     ratings = params[:ratings].keys
-    order = params[:sort] || session[:sort]
+    order = params[:order]
 
     if order
       if order == "release_date"
@@ -32,8 +43,8 @@ class MoviesController < ApplicationController
     else
       @movies = Movie.where(rating: ratings)
     end
-    session[:ratings] = params[:ratings]
-    session[:sort] = params[:sort]
+    session[:ratings] = params[:ratings] || session[:ratings]
+    session[:order] = params[:order] || session[:order]
   end
 
   def new
