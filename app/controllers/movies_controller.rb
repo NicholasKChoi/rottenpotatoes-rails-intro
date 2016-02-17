@@ -11,18 +11,29 @@ class MoviesController < ApplicationController
   end
 
   def index
-    order = params[:sort]
+    @all_ratings = Movie.all_ratings
+    if not params[:ratings]
+      if not session[:ratings]
+        params[:ratings] = {"G"=>"1", "PG" => 1, "PG-13" => 1, "R"=> 1}
+      else
+        params[:ratings] = session[:ratings]
+      end
+    end
+    ratings = params[:ratings].keys
+    order = params[:sort] || session[:sort]
 
     if order
       if order == "release_date"
-        @movies = Movie.reorder(:release_date)
+        @movies = Movie.reorder(:release_date).where(rating: ratings)
         
       elsif order == "title"
-        @movies = Movie.reorder(:title)
+        @movies = Movie.reorder(:title).where(rating: ratings)
       end
     else
-      @movies = Movie.all
+      @movies = Movie.where(rating: ratings)
     end
+    session[:ratings] = params[:ratings]
+    session[:sort] = params[:sort]
   end
 
   def new
