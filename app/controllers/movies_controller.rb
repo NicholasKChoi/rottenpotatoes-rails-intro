@@ -25,7 +25,7 @@ class MoviesController < ApplicationController
       elsif not params[:ratings]
         params[:ratings] = session[:ratings]
       end
-      if session[:order]
+      if session[:order] and not params[:order]
         params[:order] = session[:order]
       end
       redirect_to movies_path(params)
